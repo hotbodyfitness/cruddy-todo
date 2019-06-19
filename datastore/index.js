@@ -26,10 +26,17 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  var data = _.map(items, (text, id) => {
-    return { id, text };
+  fs.readdir(exports.dataDir, (err, data) => {
+    if (err) {
+      console.log('ERROR ON READ ALL: ', err);
+    } else {
+      var todos = data.map((file) => {
+        file = file.slice(0, -4);
+        return {id: file, text: file};
+      });
+      callback(null, todos);
+    }
   });
-  callback(null, data);
 };
 
 exports.readOne = (id, callback) => {
