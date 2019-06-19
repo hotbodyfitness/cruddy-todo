@@ -8,14 +8,21 @@ var items = {};
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
-  //
   counter.getNextUniqueId(
-    function(err, string) {
-      var id = string;
-      callback(null, { id, text });
-    });
-  // items[id] = text;
-
+    function(err, id) {
+      if (err) {
+        console.log('getNextUniqueId callback error: ', err);
+      }
+      var fileName = path.join(exports.dataDir, `${id}.txt`);
+      fs.writeFile(fileName, text, (err) => {
+        if (err) {
+          console.log('Create error: ', err);
+        } else {
+          callback(null, { id, text });
+        }
+      });
+    }
+  );
 };
 
 exports.readAll = (callback) => {
