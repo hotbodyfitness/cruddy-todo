@@ -15,7 +15,13 @@ exports.create = (text, callback) => {
         console.log('getNextUniqueId callback error: ', err);
       }
       var fileName = path.join(exports.dataDir, `${id}.txt`);
-      fs.writeFileAsync(fileName, text)
+      var date = Date(Date.now()).split(' ').splice(0, 5).join(' ');
+      var options = {
+        text: `${text}`,
+        createTime: `${date}`,
+        updateTime: null
+      };
+      fs.writeFileAsync(fileName, JSON.stringify(options))
         .then(() => {
           callback(null, { id, text });
         })
@@ -41,7 +47,8 @@ exports.readAll = (callback) => {
         var filePath = path.join(exports.dataDir, file);
         return fs.readFileAsync(filePath, 'utf8')
           .then((text) => {
-            return { id, text };
+            var obj = JSON.parse(text);
+            return { id, text: obj.text };
           })
           .catch((err) => {
             console.log('Error in readFileAsync: ', err);
@@ -76,7 +83,8 @@ exports.readOne = (id, callback) => {
   var fileName = path.join(exports.dataDir, `${id}.txt`);
   fs.readFileAsync(fileName, 'utf8')
     .then((data) => {
-      callback(null, { id, text: data });
+      var obj = JSON.parse(data);
+      callback(null, { id, text: obj.text });
     })
     .catch((err) => {
       callback(err, null);
@@ -93,8 +101,16 @@ exports.readOne = (id, callback) => {
 exports.update = (id, text, callback) => {
   var fileName = path.join(exports.dataDir, `${id}.txt`);
   fs.readFileAsync(fileName, 'utf8')
-    .then(() => {
-      fs.writeFileAsync(fileName, text)
+    .then((file) => {
+      var obj = JSON.parse(file);
+      var date = Date(Date.now()).split(' ').splice(0, 5).join(' ');
+      var options = {
+        text: `${text}`,
+        createTime: `${obj.createTime}`,
+        updateTime: `${date}`
+      };
+
+      fs.writeFileAsync(fileName, JSON.stringify(options))
         .then(() => {
           callback(null, { id, text });
         })
