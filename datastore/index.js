@@ -1,8 +1,8 @@
-const fs = require('fs');
+const Promise = require('bluebird');
+const fs = Promise.promisifyAll(require('fs'));
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
-const Promise = require('bluebird');
 
 var items = {};
 
@@ -15,26 +15,31 @@ exports.create = (text, callback) => {
         console.log('getNextUniqueId callback error: ', err);
       }
       var fileName = path.join(exports.dataDir, `${id}.txt`);
-      fs.writeFile(fileName, text, (err) => {
-        if (err) {
-          console.log('Create error: ', err);
-        } else {
+      fs.writeFileAsync(fileName, text)
+        .then(() => {
           callback(null, { id, text });
-        }
-      });
+        })
+        .catch((err) => {
+          console.log('Create error: ', err);
+        });
+      // fs.writeFile(fileName, text, (err) => {
+      //   if (err) {
+      //     console.log('Create error: ', err);
+      //   } else {
+      //     callback(null, { id, text });
+      //   }
+      // });
     }
   );
 };
 
 exports.readAll = (callback) => {
-  var readdirAsync = Promise.promisify(fs.readdir);
-  var readFileAsync = Promise.promisify(fs.readFile);
-  return readdirAsync(exports.dataDir)
+  return fs.readdirAsync(exports.dataDir)
     .then((data) => {
       var todos = data.map((file) => {
         var id = file.slice(0, -4);
         var filePath = path.join(exports.dataDir, file);
-        return readFileAsync(filePath, 'utf8')
+        return fs.readFileAsync(filePath, 'utf8')
           .then((text) => {
             return { id, text };
           })

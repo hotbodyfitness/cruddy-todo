@@ -17,7 +17,7 @@ const zeroPaddedNumber = (num) => {
 };
 
 const readCounter = (callback) => {
-  return fs.readFileAsync(exports.counterFile)
+  fs.readFileAsync(exports.counterFile)
     .then((file) => {
       callback(null, Number(file));
     })
@@ -35,7 +35,7 @@ const readCounter = (callback) => {
 
 const writeCounter = (count, callback) => {
   var counterString = zeroPaddedNumber(count);
-  return fs.writeFileAsync(exports.counterFile, counterString)
+  fs.writeFileAsync(exports.counterFile, counterString)
     .then(() => {
       callback(null, counterString);
     })
