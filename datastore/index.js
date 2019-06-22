@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+const Promise = require('bluebird');
 
 var items = {};
 
@@ -26,17 +27,44 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  fs.readdir(exports.dataDir, (err, data) => {
-    if (err) {
-      console.log('ERROR ON READ ALL: ', err);
-    } else {
+  var readdirAsync = Promise.promisify(fs.readdir);
+  var readFileAsync = Promise.promisify(fs.readFile);
+  return readdirAsync(exports.dataDir)
+    .then((data) => {
       var todos = data.map((file) => {
-        file = file.slice(0, -4);
-        return {id: file, text: file};
+        var id = file.slice(0, -4);
+        var filePath = path.join(exports.dataDir, file);
+        return readFileAsync(filePath, 'utf8')
+          .then((text) => {
+            return { id, text };
+          })
+          .catch((err) => {
+            console.log('Error in readFileAsync: ', err);
+          });
       });
-      callback(null, todos);
-    }
-  });
+      return todos;
+    })
+    .then((todos) => {
+      return Promise.all(todos);
+    })
+    .then((data) => {
+      callback(null, data);
+    })
+    .catch((err) => {
+      console.log('readAll error: ', err);
+      callback(err, null);
+    });
+  // fs.readdir(exports.dataDir, (err, data) => {
+  //   if (err) {
+  //     console.log('ERROR ON READ ALL: ', err);
+  //   } else {
+  //     var todos = data.map((file) => {
+  //       file = file.slice(0, -4);
+  //       return {id: file, text: file};
+  //     });
+  //     callback(null, todos);
+  //   }
+  // });
 };
 
 exports.readOne = (id, callback) => {
