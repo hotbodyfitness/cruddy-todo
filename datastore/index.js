@@ -34,7 +34,7 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  return fs.readdirAsync(exports.dataDir)
+  fs.readdirAsync(exports.dataDir)
     .then((data) => {
       var todos = data.map((file) => {
         var id = file.slice(0, -4);
@@ -74,41 +74,68 @@ exports.readAll = (callback) => {
 
 exports.readOne = (id, callback) => {
   var fileName = path.join(exports.dataDir, `${id}.txt`);
-  fs.readFile(fileName, 'utf8', (err, data) => {
-    if (err) {
-      callback(err, null);
-    } else {
+  fs.readFileAsync(fileName, 'utf8')
+    .then((data) => {
       callback(null, { id, text: data });
-    }
-  });
+    })
+    .catch((err) => {
+      callback(err, null);
+    });
+  // fs.readFile(fileName, 'utf8', (err, data) => {
+  //   if (err) {
+  //     callback(err, null);
+  //   } else {
+  //     callback(null, { id, text: data });
+  //   }
+  // });
 };
 
 exports.update = (id, text, callback) => {
   var fileName = path.join(exports.dataDir, `${id}.txt`);
-  fs.readFile(fileName, 'utf8', (err) => {
-    if (err) {
-      callback(err, null);
-    } else {
-      fs.writeFile(fileName, text, (err) => {
-        if (err) {
-          console.log('ERROR on UPDATE: ', err);
-        } else {
+  fs.readFileAsync(fileName, 'utf8')
+    .then(() => {
+      fs.writeFileAsync(fileName, text)
+        .then(() => {
           callback(null, { id, text });
-        }
-      });
-    }
-  });
+        })
+        .catch((err) => {
+          console.log('Error on Update: ', err);
+        });
+    })
+    .catch((err) => {
+      callback(err, null);
+    });
+  // fs.readFile(fileName, 'utf8', (err) => {
+  //   if (err) {
+  //     callback(err, null);
+  //   } else {
+  //     fs.writeFile(fileName, text, (err) => {
+  //       if (err) {
+  //         console.log('ERROR on UPDATE: ', err);
+  //       } else {
+  //         callback(null, { id, text });
+  //       }
+  //     });
+  //   }
+  // });
 };
 
 exports.delete = (id, callback) => {
   var fileName = path.join(exports.dataDir, `${id}.txt`);
-  fs.unlink(fileName, (err) => {
-    if (err) {
-      callback(err, null);
-    } else {
+  fs.unlinkAsync(fileName)
+    .then(() => {
       callback(null);
-    }
-  });
+    })
+    .catch((err) => {
+      callback(err, null);
+    });
+  // fs.unlink(fileName, (err) => {
+  //   if (err) {
+  //     callback(err, null);
+  //   } else {
+  //     callback(null);
+  //   }
+  // });
 };
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
